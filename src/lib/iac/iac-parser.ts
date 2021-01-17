@@ -45,6 +45,10 @@ function parseYamlOrJson(fileContent: string, filePath: string): any {
   return undefined;
 }
 
+export function isHelm(fileContent: string) {
+  return fileContent.includes('{{');
+}
+
 // This function validates that there is at least one valid doc with a k8s object kind.
 // If there is a doc with a supported kind, but invalid, we should fail
 // The function return true if the yaml is a valid k8s one, or false otherwise
@@ -53,6 +57,13 @@ export function validateK8sFile(
   filePath: string,
   fileName: string,
 ): IacValidationResponse {
+  if (isHelm(fileContent)) {
+    return {
+      isValidFile: false,
+      reason: NotSupportedIacFileErrorMsg(fileName),
+    };
+  }
+
   const k8sObjects: any[] = parseYamlOrJson(fileContent, filePath);
   if (!k8sObjects) {
     return { isValidFile: false, reason: IllegalIacFileErrorMsg(fileName) };
